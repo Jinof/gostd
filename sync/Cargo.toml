@@ -1,0 +1,27 @@
+[package]
+name = "gostd_sync"
+version = "0.1.0"
+edition = "2021"
+authors = ["jinof<jinofzhang@outlook.com>"]
+description = "Package sync impls golang mutex. mutex 包是 golang mutex 的 rust 版实现, 由于未实现 runtime 表现可能与 golang sync 不同"
+homepage = "https://github.com/wandercn/gostd"
+repository = "https://github.com/wandercn/gostd"
+keywords = ["gobind", "go-api" , "gostd", "go-to-rust", "go-standard-library", "go-sync"]
+categories = ["api-bindings", "accessibility", "development-tools", "compilers", "sync"]
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+gostd_builtin = { version = "=1.0.4", optional = false, path = "../builtin"}
+gostd_time = { version = "=1.0.6", optional = false, path = "../time"}
+
+semaphore = "0.4.0"
+
+[lib]
+name = "gostd_sync"

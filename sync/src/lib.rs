@@ -1,26 +1,24 @@
 #![allow(non_snake_case)]
 
-use core::time;
-use std::sync::atomic::{AtomicI32, AtomicU32};
+use std::sync::atomic::{AtomicI32};
 use std::sync::atomic::Ordering;
-use std::time::{SystemTime, self};
 
-use gostd_builtin::{int32, uint32, int64, float64};
-use std::arch::{asm, global_asm};
+use gostd_builtin::{int32, int64, float64};
+use std::arch::{global_asm};
 
 // Package sync implement golang sync package.
 struct Mutex {
     state: AtomicI32,
-    sema: Semaphore,
+    sema: semaphore::Semaphore<int32>,
 }
 
 impl Mutex {
     fn lockSlow(&self) {
-        let waitStartTime: int64 = 0;
+        let mut waitStartTime: int64 = 0;
         let starving: bool = false;
         let mut awoke: bool = false;
-        let iter: int32 = 0;
-        let old  = self.state.load(Ordering::Acquire);
+        let mut iter: int32 = 0;
+        let mut old  = self.state.load(Ordering::Acquire);
         loop {
             if old&(mutextLocked|mutextStarving) == mutextLocked && runtime_canSpin(iter) {
                 if !awoke && old&mutextWoken == 0 && old>>mutextWaitShift != 0 &&
@@ -59,6 +57,8 @@ impl Mutex {
                     // TODO: replace impl to runtime_nanotime.
                     waitStartTime = gostd_time::Now().Nanosecond() as i64;
                 }
+                _ = queueLifo;
+                // TODO impl runtime package.
             }
         }
     }
@@ -123,7 +123,7 @@ const starvationThresholdNs: float64 = 1e6;
 
 impl Locker for Mutex {
     fn Lock(&self) {
-        if self.state.compare_exchange(0, mutextLocked, std::sync::atomic::Ordering::Acquire, std::sync::atomic::Ordering::Relaxed).is_ok() &&{
+        if self.state.compare_exchange(0, mutextLocked, std::sync::atomic::Ordering::Acquire, std::sync::atomic::Ordering::Relaxed).is_ok() {
             return
         }
 
